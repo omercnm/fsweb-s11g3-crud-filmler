@@ -1,35 +1,48 @@
 import React, { useEffect, useState } from "react";
 
 import { Route, Switch, Redirect } from "react-router-dom";
-import MovieList from './components/MovieList';
-import Movie from './components/Movie';
-
-import MovieHeader from './components/MovieHeader';
-
-import FavoriteMovieList from './components/FavoriteMovieList';
-
-import axios from 'axios';
+import MovieList from "./components/MovieList";
+import Movie from "./components/Movie";
+import EditMovieForm from "./components/EditMovieForm";
+import MovieHeader from "./components/MovieHeader";
+import FavoriteMovieList from "./components/FavoriteMovieList";
+import AddMovieForm from "./components/AddMovieForm";
+import axios from "axios";
 
 const App = (props) => {
   const [movies, setMovies] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:9000/api/movies')
-      .then(res => {
+    axios
+      .get("http://localhost:9000/api/movies")
+      .then((res) => {
         setMovies(res.data);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
   }, []);
 
   const deleteMovie = (id) => {
-  }
+    axios
+      .delete(`http://localhost:9000/api/movie/${id}`)
+      .then((res) => {
+        PushManager("/movies");
+        setMovies(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const addToFavorites = (movie) => {
-
-  }
+    if (!favoriteMovies.find((mov) => mov.id === movie.id)) {
+      setFavoriteMovies([...favoriteMovies, movie]);
+    } else {
+      console.log("Zaten Favorilerde var");
+    }
+  };
 
   return (
     <div>
@@ -43,19 +56,28 @@ const App = (props) => {
           <FavoriteMovieList favoriteMovies={favoriteMovies} />
 
           <Switch>
+            <Route path="/movies/add">
+              <AddMovieForm setMovies={setMovies} />
+            </Route>
+
             <Route path="/movies/edit/:id">
+              {""}
+              <EditMovieForm />
+            </Route>
+
+            <Route exact path="/">
+              <Redirect to="/movies" />
             </Route>
 
             <Route path="/movies/:id">
-              <Movie />
+              <Movie
+                deleteMovieCB={deleteMovie}
+                addToFavoritesCB={addToFavorites}
+              />
             </Route>
 
             <Route path="/movies">
               <MovieList movies={movies} />
-            </Route>
-
-            <Route path="/">
-              <Redirect to="/movies" />
             </Route>
           </Switch>
         </div>
@@ -64,6 +86,4 @@ const App = (props) => {
   );
 };
 
-
 export default App;
-
